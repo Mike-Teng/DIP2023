@@ -9,32 +9,56 @@ void readBMPHeaders(FILE* file, BMPFILEHEADER& fileHeader, BMPINFOHEADER& infoHe
 void writeBMPHeaders(FILE* file, BMPFILEHEADER& fileHeader, BMPINFOHEADER& infoHeader);
 
 // enhance the sharpness of the image
-void sharpnessEnhance(const RGBA** src, RGBA** dest, int srcWidth, int srcHeight, float factor = 1.5) {
+void sharpnessEnhance(const RGBA** src, RGBA** dest, int srcWidth, int srcHeight, int factor) {
     // 3x3 拉普拉斯濾波器
-    int laplacianFilter[3][3] = {
-        {0, -1, 0},
-        {-1, 5, -1},
-        {0, -1, 0}
-    };
-
-    for (int i = 1; i < srcHeight - 1; ++i) {
-        for (int j = 1; j < srcWidth - 1; ++j) {
-            int sumR = 0, sumG = 0, sumB = 0;
-
-            // 對每個像素應用拉普拉斯濾波器
-            for (int k = -1; k <= 1; ++k) {
-                for (int l = -1; l <= 1; ++l) {
-                    sumR += src[i + k][j + l].r * laplacianFilter[k + 1][l + 1];
-                    sumG += src[i + k][j + l].g * laplacianFilter[k + 1][l + 1];
-                    sumB += src[i + k][j + l].b * laplacianFilter[k + 1][l + 1];
+    if(factor == 1){
+        int laplacianFilter[3][3] = {
+        {-1, -1, -1},
+        {-1,  9, -1},
+        {-1, -1, -1}
+        };
+        for (int i = 1; i < srcHeight - 1; ++i) {
+            for (int j = 1; j < srcWidth - 1; ++j) {
+                int sumR = 0, sumG = 0, sumB = 0;
+                // 對每個像素應用拉普拉斯濾波器
+                for (int k = -1; k <= 1; ++k) {
+                    for (int l = -1; l <= 1; ++l) {
+                        sumR += src[i + k][j + l].r * laplacianFilter[k + 1][l + 1];
+                        sumG += src[i + k][j + l].g * laplacianFilter[k + 1][l + 1];
+                        sumB += src[i + k][j + l].b * laplacianFilter[k + 1][l + 1];
+                    }
                 }
+                // 將結果設為目標像素
+                dest[i][j].r = int(min(float(255), max(float(0), float(sumR ))));
+                dest[i][j].g = int(min(float(255), max(float(0), float(sumG ))));
+                dest[i][j].b = int(min(float(255), max(float(0), float(sumB ))));
+                dest[i][j].a = src[i][j].a;
             }
-
-            // 將結果設為目標像素
-            dest[i][j].r = int(min(float(255), max(float(10), float(sumR * factor))));
-            dest[i][j].g = int(min(float(255), max(float(10), float(sumG * factor))));
-            dest[i][j].b = int(min(float(255), max(float(10), float(sumB * factor))));
-            dest[i][j].a = src[i][j].a;
+        }
+    }
+    else if (factor == 2){
+        int laplacianFilter[3][3] = {
+            {1, -2, 1},
+            {-2,  5, -2},
+            {1, -2, 1}
+        };
+        for (int i = 1; i < srcHeight - 1; ++i) {
+            for (int j = 1; j < srcWidth - 1; ++j) {
+                int sumR = 0, sumG = 0, sumB = 0;
+                // 對每個像素應用拉普拉斯濾波器
+                for (int k = -1; k <= 1; ++k) {
+                    for (int l = -1; l <= 1; ++l) {
+                        sumR += src[i + k][j + l].r * laplacianFilter[k + 1][l + 1];
+                        sumG += src[i + k][j + l].g * laplacianFilter[k + 1][l + 1];
+                        sumB += src[i + k][j + l].b * laplacianFilter[k + 1][l + 1];
+                    }
+                }
+                // 將結果設為目標像素
+                dest[i][j].r = int(min(float(255), max(float(0), float(sumR ))));
+                dest[i][j].g = int(min(float(255), max(float(0), float(sumG ))));
+                dest[i][j].b = int(min(float(255), max(float(0), float(sumB ))));
+                dest[i][j].a = src[i][j].a;
+            }
         }
     }
 }
@@ -105,7 +129,7 @@ int main(int argc, char** argv) {
         outImg[i] = new RGBA[imgWidth];
     }  
     std::string factorStr = argv[3];
-    float factor = std::stof(factorStr);
+    int factor = std::stoi(factorStr);
     sharpnessEnhance((const RGBA**)img, outImg, imgWidth, imgHeight, factor);
 
     // Write the info header

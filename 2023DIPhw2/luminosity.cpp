@@ -9,12 +9,22 @@ void readBMPHeaders(FILE* file, BMPFILEHEADER& fileHeader, BMPINFOHEADER& infoHe
 void writeBMPHeaders(FILE* file, BMPFILEHEADER& fileHeader, BMPINFOHEADER& infoHeader);
 
 // imporve the luminosity of the image
-void improveLuminosity(const RGBA** src, RGBA** dest, int srcWidth, int srcHeight, float factor=1.5){
+void improveLuminosity(const RGBA** src, RGBA** dest, int srcWidth, int srcHeight, float gamma=0.5){
     for (int i = 0; i < srcHeight; ++i) {
         for (int j = 0; j < srcWidth; ++j) {
-            dest[i][j].r = min(255, static_cast<int>(src[i][j].r * factor));
-            dest[i][j].g = min(255, static_cast<int>(src[i][j].g * factor));
-            dest[i][j].b = min(255, static_cast<int>(src[i][j].b * factor));
+
+            double normalizedRed = src[i][j].r / 255.0;
+            double normalizedGreen = src[i][j].g / 255.0;
+            double normalizedBlue = src[i][j].b / 255.0;
+
+            double newRed = 255.0 * pow(normalizedRed, gamma);
+            double newGreen = 255.0 * pow(normalizedGreen, gamma);
+            double newBlue = 255.0 * pow(normalizedBlue, gamma);
+
+            // Ensure that the values do not exceed the maximum (255)
+            dest[i][j].r = min(255, static_cast<int>(newRed));
+            dest[i][j].g = min(255, static_cast<int>(newGreen));
+            dest[i][j].b = min(255, static_cast<int>(newBlue));
             dest[i][j].a = src[i][j].a;
         }
     }
