@@ -37,3 +37,4 @@
 *.zip
 *.json
 .vscode
+build/
